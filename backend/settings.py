@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s8j24_v@&%nipnh6a(ug&g5n#as4__5e763wyraq#1+o*)r3i=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['pharmacyapp-api.herokuapp.com','']
 
 
 # Application definition
