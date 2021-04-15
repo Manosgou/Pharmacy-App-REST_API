@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .serializers import *
+from django.contrib.auth.models import User
+from api.models import *
 
 
 # Create your views here.
@@ -23,5 +24,4 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def dashboard(request):
     user = User.objects.get(id=request.user.id)
-    employee = Employee.objects.get(user=user)
-    return Response({'id':request.user.id,'username':request.user.username,'email':request.user.email,'firstname':request.user.first_name,'lastname':request.user.last_name,'domain':employee.domain})
+    return Response({'id':request.user.id,'username':request.user.username,'email':request.user.email,'firstname':request.user.first_name,'lastname':request.user.last_name,'domain':user.employee.domain})
