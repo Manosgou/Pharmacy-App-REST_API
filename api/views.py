@@ -22,5 +22,6 @@ def logout(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard(request):
-    u = User.objects.get(id=request.user.id)
-    return Response({'id':request.user.id,'username':request.user.username,'email':request.user.email,'firstname':request.user.first_name,'lastname':request.user.last_name,'domain':u.employee.domain})
+    user = User.objects.get(id=request.user.id)
+    employee = Employee.objects.get(user=user)
+    return Response({'id':request.user.id,'username':request.user.username,'email':request.user.email,'firstname':request.user.first_name,'lastname':request.user.last_name,'domain':employee.domain})
