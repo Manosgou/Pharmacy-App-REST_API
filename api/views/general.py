@@ -39,13 +39,15 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def dashboard(request):
     data={}
-    user = UserSerializer(request.user)
+    current_user = request.user
+    user = UserSerializer(current_user)
+    employee = Employee.objects.get(user=current_user)
     data['user'] = user.data
-    if request.user.employee.domain == 'PH':
+    if employee.domain == 'PH':
         obj,created = Location.objects.get_or_create(employee=request.user.employee)
         location = LocationSerializer(obj)
         data['location'] = location.data
-    elif request.user.employee.domain == 'SP':
+    elif employee.domain == 'SP':
         last_order = Order.objects.last()
         last_medicine = Medicine.objects.last()
         data['last_order'] = {"full_name":last_order.employee.user.first_name+" "+last_order.employee.user.last_name,"medicine":last_order.medicine.name,"quantity":last_order.quantity,"total_price":last_order.total_price}
