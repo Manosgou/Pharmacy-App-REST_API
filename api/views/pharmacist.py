@@ -17,7 +17,7 @@ def get_medicines(request):
     medicines = MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True)
     return Response(medicines.data)
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
 def make_order(request):
     if request.method =='POST':
@@ -33,6 +33,12 @@ def make_order(request):
             serializer.save()
             return JsonResponse({'success':'Order saved'},status=201)
         return JsonResponse(serializer.errors, status=400)
+    employee = Employee.objects.get(domain='SP')
+    try:
+        medicines = MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True)
+    except Medicine.DoesNotExist:
+        return HttpResponse(status=404)
+    return Response(medicines.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -55,12 +61,11 @@ def make_medicine_available(request,id):
         order = Order.objects.get(id=id)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    
     try:
         medicine = Medicine.objects.get(id=order.medicine.id)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    if not medicine.created_by == employee:
+    if medicine.created_by == employee:
         return JsonResponse({'error':'Το προϊόν είναι ήδη διαθέσιμο'},status=400)
     if request.method =='POST' and employee.domain =='PH':
         data = JSONParser().parse(request)

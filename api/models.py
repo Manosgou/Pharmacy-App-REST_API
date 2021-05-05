@@ -61,8 +61,6 @@ class Location(models.Model):
     def __str__(self):
         return self.street or self.employee.user.username
 
-
-
 class Order(models.Model):
     ON_PROCESS='OP'
     ON_DELIVERY='OD'
@@ -80,3 +78,7 @@ class Order(models.Model):
     location = models.ForeignKey(Location,null=True,on_delete=models.SET_NULL)
     order_status= models.CharField(max_length=2,choices=STATUS,default=ON_PROCESS)
     date_ordered = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "Order: "+self.employee.user.username +" "+ self.medicine.name+" "+str(self.medicine.quantity)
+    

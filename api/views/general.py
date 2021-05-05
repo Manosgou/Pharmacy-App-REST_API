@@ -44,9 +44,10 @@ def dashboard(request):
     employee = Employee.objects.get(user=current_user)
     data['user'] = user.data
     if employee.domain == 'PH':
-        obj,created = Location.objects.get_or_create(employee=request.user.employee)
-        location = LocationSerializer(obj)
-        data['location'] = location.data
+        obj,created = Location.objects.get_or_create(employee=request.user.employee,street='',street_num=0,city='',postal_code=0)
+        if created:
+            location = LocationSerializer(obj)
+            data['location'] = location.data
     elif employee.domain == 'SP':
         last_order = Order.objects.last()
         last_medicine = Medicine.objects.last()
