@@ -7,7 +7,7 @@ from rest_framework import status
 from api.serializers import *
 from rest_framework.parsers import JSONParser
 from api.models import Employee,Medicine,Order
-from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSerializer
+from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSerializer,GetAllOrdersSerializer
 
 
 @api_view(['GET'])
@@ -47,7 +47,10 @@ def get_orders(request):
         employee =  Employee.objects.get(user=request.user)
     except Employee.DoesNotExist:
         return HttpResponse(status=404)
-    orders = GetOrderSerializer(Order.objects.filter(employee=employee),many=True)
+    try:
+        orders = GetOrderSerializer(Order.objects.filter(employee=employee),many=True)
+    except Order.DoesNotExist:
+        return HttpResponse(status=404)
     return Response(orders.data)
 
 @api_view(['POST'])
@@ -93,4 +96,9 @@ def update_medicine_price(request,id):
         medicine.price =  data['price']
         medicine.save()
         return JsonResponse({'success':'Medicine price updated'},status=201)
-    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_customers_orders(request):
+    orders = GetAllOrdersSerializer( Order.objects.filter(employee__in=Employee.objects.filter(domain='CU')),many=True)
+    return Response(orders.data)

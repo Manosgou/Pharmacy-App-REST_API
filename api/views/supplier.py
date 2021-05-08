@@ -107,7 +107,10 @@ def delete_medicine(request,id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_orders(request):
-    orders = GetAllOrdersSerializer(Order.objects.all(),many=True)
+    try:
+        orders = GetAllOrdersSerializer( Order.objects.filter(employee__in=Employee.objects.filter(domain='PH')),many=True)
+    except Order.DoesNotExist:
+         return HttpResponse(status=404)
     return Response(orders.data)
 
 @api_view(['PUT'])

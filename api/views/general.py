@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from rest_framework.parsers import JSONParser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from api.models import Location,Order,Medicine,Employee
+from api.models import Location,Order,Medicine,Employee,MedicineCategory
 
 
 # Create your views here.
@@ -23,7 +23,6 @@ class CustomAuthToken(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        print("Hello")
         return Response({
             'token': token.key,
             'domain': user.employee.domain,
@@ -41,18 +40,43 @@ def dashboard(request):
     data={}
     current_user = request.user
     user = UserSerializer(current_user)
-    employee = Employee.objects.get(user=current_user)
+    current_employee = Employee.objects.get(user=current_user)
     data['user'] = user.data
-    if employee.domain == 'PH':
-        obj,created = Location.objects.get_or_create(employee=request.user.employee,street='',street_num=0,city='',postal_code=0)
-        if created:
-            location = LocationSerializer(obj)
-            data['location'] = location.data
-    elif employee.domain == 'SP':
+    if current_employee.domain == 'PH':
+        obj,created = Location.objects.get_or_create(employee=current_employee)
+        print(created)
+        if created: 
+            obj.street=''
+            obj.street_num=0
+            obj.city=''
+            obj.postal_code=0
+            obj.save()
+        location = LocationSerializer(obj)
+        data['location'] = location.data
+    elif current_employee.domain == 'SP':
         last_order = Order.objects.last()
+        if last_order is None:
+            data['last_order'] = None
+        else:
+            data['last_order'] = {"full_name":last_order.employee.user.first_name+" "+last_order.employee.user.last_name,"medicine":last_order.medicine.name,"quantity":last_order.quantity,"total_price":last_order.total_price}
         last_medicine = Medicine.objects.last()
-        data['last_order'] = {"full_name":last_order.employee.user.first_name+" "+last_order.employee.user.last_name,"medicine":last_order.medicine.name,"quantity":last_order.quantity,"total_price":last_order.total_price}
-        data['last_medicine'] ={"name":last_medicine.name,"category":last_medicine.category.name,"quantity":last_medicine.quantity,"price":last_medicine.price}
+        if last_medicine is None:
+            data['last_medicine'] = None
+        else:
+            data['last_medicine'] ={"name":last_medicine.name,"category":last_medicine.category.name,"quantity":last_medicine.quantity,"price":last_medicine.price}
+        data['total_orders']=Order.objects.all().count()
+        data['total_medicines']=Medicine.objects.filter(created_by=current_employee).count()
+        data['total_categories']=MedicineCategory.objects.all().count()
+    elif current_employee.domain =='CU':
+        obj,created = Location.objects.get_or_create(employee=current_employee)
+        if created:
+            obj.street=''
+            obj.street_num=0
+            obj.city=''
+            obj.postal_code=0
+            obj.save()
+        location = LocationSerializer(obj)
+        data['location'] = location.data
     return JsonResponse(data)
 
 @api_view(['PUT'])
