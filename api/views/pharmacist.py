@@ -7,7 +7,7 @@ from rest_framework import status
 from api.serializers import *
 from rest_framework.parsers import JSONParser
 from api.models import Employee,Medicine,Order
-from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSerializer,GetAllOrdersSerializer
+from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSerializer,GetAllOrdersSerializer,OrderStatusSerializer
 
 
 @api_view(['GET'])
@@ -102,3 +102,32 @@ def update_medicine_price(request,id):
 def get_customers_orders(request):
     orders = GetAllOrdersSerializer( Order.objects.filter(employee__in=Employee.objects.filter(domain='CU')),many=True)
     return Response(orders.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_customer_order_status(request,id):
+    current_user = request.user
+    employee = Employee.objects.get(user=current_user)
+    try:
+        order = Order.objects.get(id=id)
+    except Order.DoesNotExist:
+        return HttpResponse(status=404)
+    if request.method =='PUT'and employee.domain =='PH':
+        data = JSONParser().parse(request)
+        serializer = OrderStatusSerializer(order,data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_customer_order(request,id):
+    try:
+        order = Order.objects.get(id=id)
+    except Order.DoesNotExist:
+        return HttpResponse(status=404)
+    if request.method =='DELETE':
+        order.delete()
+        return HttpResponse(status=204)

@@ -128,3 +128,14 @@ def update_order_status(request,id):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_order(request,id):
+    try:
+        order = Order.objects.get(id=id)
+    except Order.DoesNotExist:
+        return HttpResponse(status=404)
+    if request.method =='DELETE':
+        order.delete()
+        return HttpResponse(status=204)
