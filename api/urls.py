@@ -33,5 +33,5 @@ urlpatterns = [
     path('pharmacist/update/medicine/<int:id>/price',pharmacist.update_medicine_price),
     path('customer/get/medicines',customer.get_medicines),
     path('customer/make/order',customer.make_order),
-    path('customer/get/orders',customer.make_order),
+    path('customer/get/orders',customer.get_orders),
 ]

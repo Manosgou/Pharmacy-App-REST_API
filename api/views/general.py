@@ -51,6 +51,11 @@ def dashboard(request):
             obj.city=''
             obj.postal_code=0
             obj.save()
+        medicines_quantity=[]
+        for m in Medicine.objects.filter(created_by=current_employee):
+            item={m.name:m.quantity}
+            medicines_quantity.append(item)
+        data['medicines_quantity']=medicines_quantity
         location = LocationSerializer(obj)
         data['location'] = location.data
     elif current_employee.domain == 'SP':
@@ -67,6 +72,11 @@ def dashboard(request):
         data['total_orders']=Order.objects.all().count()
         data['total_medicines']=Medicine.objects.filter(created_by=current_employee).count()
         data['total_categories']=MedicineCategory.objects.all().count()
+        medicines_quantity=[]
+        for m in Medicine.objects.filter(created_by=current_employee):
+            item={m.name:m.quantity}
+            medicines_quantity.append(item)
+        data['medicines_quantity']=medicines_quantity
     elif current_employee.domain =='CU':
         obj,created = Location.objects.get_or_create(employee=current_employee)
         if created:
@@ -75,6 +85,11 @@ def dashboard(request):
             obj.city=''
             obj.postal_code=0
             obj.save()
+        last_order = Order.objects.filter(employee=current_employee).last()
+        if last_order is None:
+            data['last_order'] =None
+        else:
+            data['last_order'] = {"medicine":last_order.medicine.name,"quantity":last_order.quantity,"total_price":last_order.total_price}
         location = LocationSerializer(obj)
         data['location'] = location.data
     return JsonResponse(data)

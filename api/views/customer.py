@@ -60,5 +60,5 @@ def get_orders(request):
         orders_obj = Order.objects.filter(employee=employee)
     except Order.DoesNotExist:
          return HttpResponse(status=404)
-    orders = GetOrderSerializer(orders_obj)
+    orders = GetOrderSerializer(orders_obj,many=True)
     return Response(orders.data)
