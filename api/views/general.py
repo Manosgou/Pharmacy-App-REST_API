@@ -1,3 +1,4 @@
+from typing import Counter
 from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 from rest_framework.decorators import api_view,permission_classes
@@ -44,7 +45,6 @@ def dashboard(request):
     data['user'] = user.data
     if current_employee.domain == 'PH':
         obj,created = Location.objects.get_or_create(employee=current_employee)
-        print(created)
         if created: 
             obj.street=''
             obj.street_num=0
@@ -52,10 +52,18 @@ def dashboard(request):
             obj.postal_code=0
             obj.save()
         medicines_quantity=[]
+        deficit_medicines=[]
         for m in Medicine.objects.filter(created_by=current_employee):
             item={m.name:m.quantity}
             medicines_quantity.append(item)
+            if m.quantity<5:
+                deficit_medicines.append(m.name)
+        data['deficit_medicines']=deficit_medicines
         data['medicines_quantity']=medicines_quantity
+        orders_on_process=Order.objects.filter(employee__in=Employee.objects.filter(domain='CU'),order_status='OP').count()
+        orders_on_deliver = Order.objects.filter(employee__in=Employee.objects.filter(domain='CU'),order_status='OD').count()
+        orders_delivered = Order.objects.filter(employee__in=Employee.objects.filter(domain='CU'),order_status='DE').count()
+        data['orders'] = {'orders_on_process':orders_on_process,'orders_on_deliver':orders_on_deliver,'orders_delivered':orders_delivered}
         location = LocationSerializer(obj)
         data['location'] = location.data
     elif current_employee.domain == 'SP':
