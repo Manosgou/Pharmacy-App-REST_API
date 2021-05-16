@@ -56,8 +56,9 @@ def get_orders(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def make_medicine_available(request,id):
+    current_user = request.user
     try:
-        employee = Employee.objects.get(user=request.user)
+        current_employee = Employee.objects.get(user=current_user)
     except Employee.DoesNotExist:
         return HttpResponse(status=404)
     try:
@@ -68,15 +69,15 @@ def make_medicine_available(request,id):
         medicine = Medicine.objects.get(id=order.medicine.id)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    if medicine.created_by == employee:
+    if Medicine.objects.filter(name=medicine.name,created_by=current_employee).exists():
         return JsonResponse({'error':'Το προϊόν είναι ήδη διαθέσιμο'},status=400)
-    if request.method =='POST' and employee.domain =='PH':
+    if request.method =='POST' and current_employee.domain =='PH':
         data = JSONParser().parse(request)
         obj = medicine
         obj.pk=None
         obj.quantity=order.quantity
         obj.price = data['price']
-        obj.created_by = employee
+        obj.created_by = current_employee
         obj.save()
         return JsonResponse({'success':'Medicine is avaialable'},status=201)
 
