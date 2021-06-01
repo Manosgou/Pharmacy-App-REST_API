@@ -26,14 +26,14 @@ admin.site.register(Medicine,MedicineAdmin)
 
 
 
-class EmployeeInline(admin.StackedInline):
-    model = Employee
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
     can_delete = False
-    verbose_name_plural = 'employee'
+    verbose_name_plural = 'user_profile'
 
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (EmployeeInline,)
+    inlines = (UserProfileInline,)
 
 
 admin.site.unregister(User)

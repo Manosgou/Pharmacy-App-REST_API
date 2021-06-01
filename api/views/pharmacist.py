@@ -6,15 +6,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from api.serializers import *
 from rest_framework.parsers import JSONParser
-from api.models import Employee,Medicine,Order
+from api.models import UserProfile,Medicine,Order
 from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSerializer,GetAllOrdersSerializer,OrderStatusSerializer
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_medicines(request):
-    employee = Employee.objects.get(user=request.user)
-    medicines = MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True)
+    user_profile = UserProfile.objects.get(user=request.user)
+    medicines = MedicineSerializer(Medicine.objects.filter(created_by=user_profile),many=True)
     return Response(medicines.data)
 
 @api_view(['GET','POST'])
@@ -33,9 +33,9 @@ def make_order(request):
             serializer.save()
             return JsonResponse({'success':'Order saved'},status=201)
         return JsonResponse(serializer.errors, status=400)
-    employee = Employee.objects.get(domain='SP')
+    user_profile = UserProfile.objects.get(domain='SP')
     try:
-        medicines = MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True)
+        medicines = MedicineSerializer(Medicine.objects.filter(created_by=user_profile),many=True)
     except Medicine.DoesNotExist:
         return HttpResponse(status=404)
     return Response(medicines.data)
@@ -44,11 +44,11 @@ def make_order(request):
 @permission_classes([IsAuthenticated])
 def get_orders(request):
     try:
-        employee =  Employee.objects.get(user=request.user)
-    except Employee.DoesNotExist:
+        user_profile =  UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
         return HttpResponse(status=404)
     try:
-        orders = GetOrderSerializer(Order.objects.filter(employee=employee),many=True)
+        orders = GetOrderSerializer(Order.objects.filter(user_profile=user_profile),many=True)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
     return Response(orders.data)
@@ -58,8 +58,8 @@ def get_orders(request):
 def make_medicine_available(request,id):
     current_user = request.user
     try:
-        current_employee = Employee.objects.get(user=current_user)
-    except Employee.DoesNotExist:
+        current_user_profile = UserProfile.objects.get(user=current_user)
+    except UserProfile.DoesNotExist:
         return HttpResponse(status=404)
     try:
         order = Order.objects.get(id=id)
@@ -69,15 +69,15 @@ def make_medicine_available(request,id):
         medicine = Medicine.objects.get(id=order.medicine.id)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    if Medicine.objects.filter(name=medicine.name,created_by=current_employee).exists():
+    if Medicine.objects.filter(name=medicine.name,created_by=current_user_profile).exists():
         return JsonResponse({'error':'Το προϊόν είναι ήδη διαθέσιμο'},status=400)
-    if request.method =='POST' and current_employee.domain =='PH':
+    if request.method =='POST' and current_user_profile.domain =='PH':
         data = JSONParser().parse(request)
         obj = medicine
         obj.pk=None
         obj.quantity=order.quantity
         obj.price = data['price']
-        obj.created_by = current_employee
+        obj.created_by = current_user_profile
         obj.save()
         return JsonResponse({'success':'Medicine is avaialable'},status=201)
 
@@ -85,14 +85,14 @@ def make_medicine_available(request,id):
 @permission_classes([IsAuthenticated])
 def update_medicine_price(request,id):
     try:
-        employee = Employee.objects.get(user=request.user)
-    except Employee.DoesNotExist:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
         return HttpResponse(status=404)
     try:
-        medicine = Medicine.objects.get(id=id,created_by=employee)
+        medicine = Medicine.objects.get(id=id,created_by=user_profile)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    if request.method =='PUT'and employee.domain =='PH':
+    if request.method =='PUT'and user_profile.domain =='PH':
         data = JSONParser().parse(request)
         medicine.price =  data['price']
         medicine.save()
@@ -101,19 +101,19 @@ def update_medicine_price(request,id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_customers_orders(request):
-    orders = GetAllOrdersSerializer( Order.objects.filter(employee__in=Employee.objects.filter(domain='CU')),many=True)
+    orders = GetAllOrdersSerializer( Order.objects.filter(user_profile__in=UserProfile.objects.filter(domain='CU')),many=True)
     return Response(orders.data)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_customer_order_status(request,id):
     current_user = request.user
-    employee = Employee.objects.get(user=current_user)
+    user_profile = UserProfile.objects.get(user=current_user)
     try:
         order = Order.objects.get(id=id)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
-    if request.method =='PUT'and employee.domain =='PH':
+    if request.method =='PUT'and user_profile.domain =='PH':
         data = JSONParser().parse(request)
         serializer = OrderStatusSerializer(order,data=data)
         if serializer.is_valid():

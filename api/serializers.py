@@ -9,18 +9,16 @@ class LocationSerializer(serializers.ModelSerializer):
         fields=['id','street','street_num','city','postal_code']
 
 
-class EmployeeDomainSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Employee
-        fields=['domain']
-
-
 class UserSerializer(serializers.ModelSerializer):
-    employee =EmployeeDomainSerializer(required=False)
     class Meta:
         model=User
-        fields=['id','username','email','last_name','first_name','employee']
+        fields=['id','username','email','last_name','first_name']
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model=UserProfile
+        fields=['user','domain']
 
 
 class MedicineCategorySerializer(serializers.ModelSerializer):
@@ -57,7 +55,7 @@ class MedicineSerializer(serializers.ModelSerializer):
 class CreateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model=Order
-        fields=['employee','medicine','quantity','total_price','location']
+        fields=['user_profile','medicine','quantity','total_price','location']
         
 
 
@@ -68,24 +66,13 @@ class GetOrderSerializer(serializers.ModelSerializer):
         fields=['id','medicine','quantity','total_price','order_status','date_ordered']
 
 
-class OnlyUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=User
-        fields=['id','username','email','last_name','first_name']
-
-class EmployeeSerializer(serializers.ModelSerializer):
-    user = OnlyUserSerializer()
-    class Meta:
-        model = Employee
-        fields=['user','domain']
-
 class GetAllOrdersSerializer(serializers.ModelSerializer):
-    employee = EmployeeSerializer()
+    user_profile = UserProfileSerializer()
     medicine=MedicineSerializer()
     location = LocationSerializer()
     class Meta:
         model=Order
-        fields=['id','employee','medicine','quantity','total_price','location','order_status','date_ordered']
+        fields=['id','user_profile','medicine','quantity','total_price','location','order_status','date_ordered']
 
 class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
