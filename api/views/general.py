@@ -128,7 +128,7 @@ def user_update(request,id):
     if request.method=='PUT':
         try:
             user = User.objects.get(id=id)
-        except user.DoesNotExist:
+        except User.DoesNotExist:
             return HttpResponse(status=404) 
         data = JSONParser().parse(request)
         serializer = UserSerializer(user,data=data)

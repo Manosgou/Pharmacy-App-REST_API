@@ -73,9 +73,15 @@ def create_medicine(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_medicines(request):
-    employee = Employee.objects.get(user=request.user)
-    medicines = MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True)
-    return Response(medicines.data)
+    current_user =request.user
+    try:
+        employee = Employee.objects.get(user=current_user)
+    except Employee.DoesNotExist:
+        return HttpResponse(status=404)
+    if employee.domain =='SP':
+        return Response(MedicineSerializer(Medicine.objects.filter(created_by=employee),many=True).data)
+    else:
+        return Response({"error":"Μόνο οι φαρμακοποιοί έχουν πρόσβαση"})
 
 
 @api_view(['PUT'])
@@ -85,7 +91,11 @@ def update_medicine(request,id):
         medicine = Medicine.objects.get(id=id)
     except Medicine.DoesNotExist:
         return HttpResponse(status=404)
-    if request.method =='PUT':
+    try:
+        emmployee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        return HttpResponse(status=404)
+    if request.method =='PUT' and emmployee.domain=='SP':
         data = JSONParser().parse(request)
         serializer = MedicineSerializer(medicine, data=data)
         if serializer.is_valid():
@@ -100,7 +110,11 @@ def delete_medicine(request,id):
         medicine = Medicine.objects.get(id=id)
     except Medicine.DoesNotExist:
         return HttpResponse(status=404)
-    if request.method =='DELETE':
+    try:
+        employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        return HttpResponse(status=404)
+    if request.method =='DELETE' and employee.domain=='SP':
         medicine.delete()
         return HttpResponse(status=204)
 
@@ -111,7 +125,15 @@ def get_orders(request):
         orders = GetAllOrdersSerializer( Order.objects.filter(employee__in=Employee.objects.filter(domain='PH')),many=True)
     except Order.DoesNotExist:
          return HttpResponse(status=404)
-    return Response(orders.data)
+    try:
+        employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        return HttpResponse(status=404)
+    if employee.domain =='SP':
+        return Response(orders.data)
+    else:
+        return Response({"error":"Μόνο οι φαρμακοποιοί έχουν πρόσβαση"})
+    
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

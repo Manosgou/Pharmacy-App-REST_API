@@ -89,7 +89,7 @@ def update_medicine_price(request,id):
     except Employee.DoesNotExist:
         return HttpResponse(status=404)
     try:
-        medicine = Medicine.objects.get(created_by=employee)
+        medicine = Medicine.objects.get(id=id,created_by=employee)
     except Order.DoesNotExist:
         return HttpResponse(status=404)
     if request.method =='PUT'and employee.domain =='PH':
