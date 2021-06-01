@@ -80,5 +80,5 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return "Order: "+self.user_profile.user.username +" "+ self.medicine.name+" "+str(self.medicine.quantity)
+        return "Order: "+str(self.user_profile) +" "+ self.medicine.name+" "+str(self.medicine.quantity)
     
