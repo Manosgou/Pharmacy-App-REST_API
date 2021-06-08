@@ -1,5 +1,4 @@
 from django.urls import path
-from . import views
 from api.views import general
 from api.views import supplier
 from api.views import pharmacist
@@ -7,7 +6,7 @@ from api.views import customer
 
 
 urlpatterns = [
-    path('login', general.CustomAuthToken.as_view()),
+    path('login', general.login),
     path('logout', general.logout),
     path('dashboard', general.dashboard),
     path('user/update/<int:id>', general.user_update),

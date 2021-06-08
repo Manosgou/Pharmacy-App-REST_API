@@ -3,7 +3,6 @@ from django.http import JsonResponse,HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
 from api.serializers import *
 from rest_framework.parsers import JSONParser
 from api.models import UserProfile,Medicine,Order
@@ -13,8 +12,7 @@ from api.serializers import MedicineSerializer,CreateOrderSerializer,GetOrderSer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_medicines(request):
-    user_profile = UserProfile.objects.get(user=request.user)
-    medicines = MedicineSerializer(Medicine.objects.filter(created_by=user_profile),many=True)
+    medicines = MedicineSerializer(Medicine.objects.filter(created_by__in=UserProfile.objects.filter(domain='SP')),many=True)
     return Response(medicines.data)
 
 @api_view(['GET','POST'])

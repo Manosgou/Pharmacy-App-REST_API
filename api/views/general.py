@@ -1,33 +1,47 @@
-from typing import Counter
-from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from api.serializers import LocationSerializer, UserProfileSerializer,UserSerializer
+from api.serializers import LocationSerializer, UserProfileSerializer,UserSerializer,UserSigninSerializer
 from django.contrib.auth.models import User
 from rest_framework.parsers import JSONParser
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from api.models import Location,Order,Medicine,UserProfile,MedicineCategory
+from django.contrib.auth import authenticate
+from api.authentication import token_expire_handler
+from rest_framework.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND
+)
 
 
 # Create your views here.
 
+@api_view(['POST'])
+def login(request):
+    data = JSONParser().parse(request)
+    print(data)
+    signin_serializer = UserSigninSerializer(data = data)
+    if not signin_serializer.is_valid():
+        return Response(signin_serializer.errors, status = HTTP_400_BAD_REQUEST)
 
-class CustomAuthToken(ObtainAuthToken):
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        user_profile = UserProfile.objects.get(user=user)
-        return Response({
+    user = authenticate(
+            username = signin_serializer.data['username'],
+            password = signin_serializer.data['password'] 
+        )
+    if not user:
+        return Response({'detail': 'Invalid Credentials or activate account'}, status=HTTP_404_NOT_FOUND)
+        
+    token, _ = Token.objects.get_or_create(user = user)
+    
+    
+    is_expired, token = token_expire_handler(token)
+    user_profile = UserProfile.objects.get(user=user)
+    return Response({
             'token': token.key,
-            'domain': user_profile.domain,
+            'domain': user_profile.domain
         })
 
 @api_view(['GET'])
