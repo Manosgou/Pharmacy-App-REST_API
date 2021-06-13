@@ -15,6 +15,13 @@ def get_medicines(request):
     medicines = MedicineSerializer(Medicine.objects.filter(created_by__in=UserProfile.objects.filter(domain='SP')),many=True)
     return Response(medicines.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def pharmacist_medicines(request):
+    medicines = MedicineSerializer(Medicine.objects.filter(created_by__in=UserProfile.objects.filter(user=request.user)),many=True)
+    return Response(medicines.data)
+
+
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
 def make_order(request):

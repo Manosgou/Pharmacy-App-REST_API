@@ -28,6 +28,7 @@ urlpatterns = [
     path('pharmacist/update/customer/order-status/<int:id>',pharmacist.update_customer_order_status),
     path('pharmacist/delete/customer/order/<int:id>',pharmacist.delete_customer_order),
     path('pharmacist/get/medicines',pharmacist.get_medicines),
+    path('pharmacist/medicines',pharmacist.pharmacist_medicines),
     path('pharmacist/make/medicine-available/<int:id>',pharmacist.make_medicine_available),
     path('pharmacist/update/medicine/<int:id>/price',pharmacist.update_medicine_price),
     path('customer/get/medicines',customer.get_medicines),

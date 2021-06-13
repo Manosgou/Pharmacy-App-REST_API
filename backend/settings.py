@@ -155,4 +155,4 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 django_heroku.settings(locals())
 
-TOKEN_EXPIRED_AFTER_SECONDS = 60
+TOKEN_EXPIRED_AFTER_SECONDS = 160
